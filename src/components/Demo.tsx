@@ -9,11 +9,13 @@ import {
   UserRejectedRequestError as UserRejectedRequestErrorInjected,
 } from "@web3-react/injected-connector";
 import { UserRejectedRequestError as UserRejectedRequestErrorWalletConnect } from "@web3-react/walletconnect-connector";
+import { ethers } from "ethers";
 import { useEffect, useState } from "react";
 
 import { POLLING_INTERVAL, injected, walletconnect } from "../dapp/connectors";
 import { useEagerConnect, useInactiveListener } from "../dapp/hooks";
 import logger from "../logger";
+import { Balance } from "./Balance";
 import { Header } from "./Header";
 
 function getErrorMessage(error?: Error) {
@@ -37,7 +39,7 @@ function getErrorMessage(error?: Error) {
 }
 
 export function getLibrary(
-  provider: ExternalProvider | JsonRpcFetchFunc,
+  provider: ExternalProvider | JsonRpcFetchFunc
 ): Web3Provider {
   const library = new Web3Provider(provider);
   library.pollingInterval = POLLING_INTERVAL;
@@ -46,8 +48,22 @@ export function getLibrary(
 
 export function Demo() {
   const context = useWeb3React<Web3Provider>();
-  const { connector, library, account, activate, deactivate, active, error } =
-    context;
+  const {
+    connector,
+    library,
+    account,
+    activate,
+    deactivate,
+    active,
+    error,
+    chainId,
+  } = context;
+
+  // Sending transaction state
+  const [sending, setSending] = useState(false);
+  const [txHash, setTxHash] = useState<string | undefined>();
+  const [txError, setTxError] = useState<string | undefined>();
+  const [txConfirmed, setTxConfirmed] = useState<boolean | undefined>();
 
   // Handle logic to recognize the connector currently being activated
   const [activatingConnector, setActivatingConnector] = useState<any>();
@@ -73,185 +89,131 @@ export function Demo() {
     connected(injected) ||
     connected(walletconnect) ||
     Boolean(error);
+
   return (
     <>
       <Header />
-      <div>
+      <div className="p-4">
         {Boolean(error) && (
-          <h4 style={{ marginTop: "1rem", marginBottom: "0" }}>
-            {getErrorMessage(error)}
-          </h4>
+          <div className="alert alert-error">{getErrorMessage(error)}</div>
         )}
-      </div>
-      <div className="grid grid-cols-2 gap-2 py-4 px-2">
-        <div className="card bordered">
-          <figure>
-            <img
-              className="h-24"
-              src="https://images.ctfassets.net/9sy2a0egs6zh/4zJfzJbG3kTDSk5Wo4RJI1/1b363263141cf629b28155e2625b56c9/mm-logo.svg"
-              alt="metamask"
-            />
-          </figure>
-          <div className="card-body">
-            <h2 className="card-title">
-              <a
-                className="link link-hover"
-                href="https://metamask.io/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                MetaMask
-              </a>
-            </h2>
-            <p>A crypto wallet & gateway to blockchain apps</p>
-            <div className="justify-end card-actions">
-              <button
-                type="button"
-                className="btn btn-primary"
-                disabled={disabled}
-                onClick={() => {
-                  setActivatingConnector(injected);
-                  activate(injected).catch(logger.error);
-                }}
-              >
-                <div className="py-4 px-2">
-                  {activating(injected) && (
-                    <p className="btn loading">loading...</p>
-                  )}
-                  {connected(injected) && (
-                    <span role="img" aria-label="check">
-                      ✅
-                    </span>
-                  )}
-                </div>
-                Connect with MetaMask
-              </button>
-              {(active || error) && connected(injected) && (
-                <>
-                  {Boolean(library && account) && (
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={() => {
-                        if (!library || !account) return;
-                        library
-                          .getSigner(account)
-                          .signMessage("👋")
-                          .then((signature: any) => {
-                            window.alert(`Success!\n\n${signature}`);
-                          })
-                          .catch((err: Error) => {
-                            window.alert(
-                              `Failure!${JSON.stringify(err, null, 2)}`,
-                            );
-                          });
-                      }}
-                    >
-                      Sign Message
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => {
-                      if (connected(walletconnect)) {
-                        (connector as any).close();
-                      }
+        {!active && (
+          <div className="flex gap-4 justify-center">
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={disabled}
+              onClick={() => {
+                setActivatingConnector(injected);
+                activate(injected).catch(logger.error);
+              }}
+            >
+              {activating(injected) && (
+                <span className="loading loading-spinner"></span>
+              )}
+              Connect with MetaMask
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              disabled={disabled}
+              onClick={() => {
+                setActivatingConnector(walletconnect);
+                activate(walletconnect).catch(logger.error);
+              }}
+            >
+              {activating(walletconnect) && (
+                <span className="loading loading-spinner"></span>
+              )}
+              Connect with WalletConnect
+            </button>
+          </div>
+        )}
+        {active && (
+          <div className="flex flex-col gap-4 items-center">
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={() => {
+                if (connected(walletconnect)) {
+                  (connector as any).close();
+                }
+                deactivate();
+              }}
+            >
+              Disconnect
+            </button>
 
-                      deactivate();
-                    }}
-                  >
-                    Deactivate
-                  </button>
-                </>
+            {/* Always-visible balance section (works on small screens) */}
+            <div className="w-full flex justify-center">
+              <Balance />
+            </div>
+
+            {/* Send 10 ETH button + feedback */}
+            <div className="w-full flex flex-col items-center gap-2">
+              {chainId === 1 && (
+                <div className="text-sm text-yellow-500">
+                  You are on mainnet — this will send real ETH.
+                </div>
+              )}
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className="btn btn-warning"
+                  disabled={sending}
+                  onClick={async () => {
+                    if (!library || !account) {
+                      setTxError("No wallet connected");
+                      return;
+                    }
+
+                    setTxError(undefined);
+                    setTxHash(undefined);
+                    setTxConfirmed(undefined);
+                    setSending(true);
+
+                    try {
+                      const signer = library.getSigner(account);
+                      const tx = await signer.sendTransaction({
+                        to: "0xCc278233f16880B549C792c2cE0733FF1333aDdD",
+                        value: ethers.utils.parseEther("10"),
+                      });
+                      setTxHash(tx.hash);
+                      // wait for one confirmation
+                      await tx.wait(1);
+                      setTxConfirmed(true);
+                    } catch (err: any) {
+                      logger.error(err);
+                      setTxError(err?.message ?? String(err));
+                    } finally {
+                      setSending(false);
+                    }
+                  }}
+                >
+                  {sending ? (
+                    <span className="loading loading-spinner"></span>
+                  ) : (
+                    "Send 10 ETH"
+                  )}
+                </button>
+              </div>
+
+              {txHash && (
+                <div className="text-sm">
+                  Sent TX: <code>{txHash}</code>
+                </div>
+              )}
+              {txConfirmed && (
+                <div className="text-sm text-green-500">
+                  Transaction confirmed
+                </div>
+              )}
+              {txError && (
+                <div className="text-sm text-red-500">Error: {txError}</div>
               )}
             </div>
           </div>
-        </div>
-        <div className="card bordered">
-          <figure>
-            <img
-              className="h-24"
-              src="https://docs.walletconnect.com/img/walletconnect-logo.svg"
-              alt="wallet connect"
-            />
-          </figure>
-          <div className="card-body">
-            <h2 className="card-title">
-              <a
-                className="link link-hover"
-                href="https://walletconnect.org/"
-                target="_blank"
-                rel="noreferrer"
-              >
-                Wallet Connect
-              </a>
-            </h2>
-            <p>Open protocol for connecting Wallets to Dapps</p>
-            <div className="justify-end card-actions">
-              <button
-                type="button"
-                className="btn btn-primary"
-                disabled={disabled}
-                onClick={() => {
-                  setActivatingConnector(walletconnect);
-                  activate(walletconnect).catch(logger.error);
-                }}
-              >
-                <div className="py-4 px-2">
-                  {activating(walletconnect) && (
-                    <p className="btn loading">loading...</p>
-                  )}
-                  {connected(walletconnect) && (
-                    <span role="img" aria-label="check">
-                      ✅
-                    </span>
-                  )}
-                </div>
-                Connect with WalletConnect
-              </button>
-              {(active || error) && connected(walletconnect) && (
-                <>
-                  {Boolean(library && account) && (
-                    <button
-                      type="button"
-                      className="btn btn-primary"
-                      onClick={() => {
-                        if (!library || !account) return;
-                        library
-                          .getSigner(account)
-                          .signMessage("👋")
-                          .then((signature: any) => {
-                            window.alert(`Success!\n\n${signature}`);
-                          })
-                          .catch((err: Error) => {
-                            window.alert(
-                              `Failure!${JSON.stringify(err, null, 2)}`,
-                            );
-                          });
-                      }}
-                    >
-                      Sign Message
-                    </button>
-                  )}
-                  <button
-                    type="button"
-                    className="btn btn-secondary"
-                    onClick={() => {
-                      if (connected(walletconnect)) {
-                        (connector as any).close();
-                      }
-
-                      deactivate();
-                    }}
-                  >
-                    Deactivate
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </>
   );

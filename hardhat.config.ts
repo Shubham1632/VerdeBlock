@@ -34,6 +34,11 @@ const hardHatConfig: HardhatUserConfig = {
       chainId: 1337,
       initialBaseFeePerGas: 0, // Workaround from https://github.com/sc-forks/solidity-coverage/issues/652#issuecomment-896330136 . Remove when that issue is closed.
     },
+    ganache: {
+      chainId: 1337,
+      url: "http://127.0.0.1:7545",
+      accounts: [process.env.PRIVATE_KEY ?? ""].filter(Boolean),
+    },
     ropsten: {
       url: process.env.ROPSTEN_PROVIDER_URL ?? "",
       accounts: [process.env.PRIVATE_KEY ?? ""].filter(Boolean),

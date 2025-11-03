@@ -6,7 +6,8 @@ import logger from "../logger";
 
 export function Balance() {
   const { account, library, chainId } = useWeb3React();
-  const [balance, setBalance] = useState<number | undefined>();
+  // store as string to preserve full wei precision
+  const [balance, setBalance] = useState<string | undefined>();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: // Ensures refresh if referential identity of library doesn't change across chainIds
   useEffect((): any => {
@@ -17,7 +18,7 @@ export function Balance() {
         .getBalance(account)
         .then((accountBalance) => {
           if (!stale && accountBalance) {
-            setBalance(Number(accountBalance));
+            setBalance(accountBalance.toString());
           }
         })
         .catch(() => {
