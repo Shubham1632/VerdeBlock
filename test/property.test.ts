@@ -120,9 +120,9 @@ describe("Property", function () {
 
     it("Should not allow non-owner to approve", async function () {
       await property.connect(addr1).requestWhitelist();
-      await expect(
-        property.connect(addr1).approveWhitelist(addr1.address)
-      ).to.be.revertedWithCustomError(property, "OwnableUnauthorizedAccount").withArgs(addr1.address);
+      await expect(property.connect(addr1).approveWhitelist(addr1.address))
+        .to.be.revertedWithCustomError(property, "OwnableUnauthorizedAccount")
+        .withArgs(addr1.address);
     });
   });
 });
