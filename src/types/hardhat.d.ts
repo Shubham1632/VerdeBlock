@@ -92,6 +92,10 @@ declare module "hardhat/types/runtime" {
       name: "PropertyVault",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.PropertyVault__factory>;
+    getContractFactory(
+      name: "VerdeBlock",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.VerdeBlock__factory>;
 
     getContractAt(
       name: "Ownable",
@@ -193,6 +197,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.PropertyVault>;
+    getContractAt(
+      name: "VerdeBlock",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.VerdeBlock>;
 
     // default types
     getContractFactory(

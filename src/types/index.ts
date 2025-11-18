@@ -46,3 +46,5 @@ export type { PropertyToken } from "./contracts/PropertyToken.sol/PropertyToken"
 export { PropertyToken__factory } from "./factories/contracts/PropertyToken.sol/PropertyToken__factory";
 export type { PropertyVault } from "./contracts/PropertyVault";
 export { PropertyVault__factory } from "./factories/contracts/PropertyVault__factory";
+export type { VerdeBlock } from "./contracts/VerdeBlock";
+export { VerdeBlock__factory } from "./factories/contracts/VerdeBlock__factory";

@@ -4,3 +4,4 @@
 export * as propertyTokenSol from "./PropertyToken.sol";
 export { Property__factory } from "./Property__factory";
 export { PropertyVault__factory } from "./PropertyVault__factory";
+export { VerdeBlock__factory } from "./VerdeBlock__factory";

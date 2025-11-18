@@ -31,7 +31,7 @@ contract Property is Ownable {
 
     constructor() Ownable(msg.sender) {}
 
-    function addProperty(string memory _location, uint256 _price, string memory _description) public {
+    function addProperty(string memory _location, uint256 _price, string memory _description) public onlyOwner {
         require(_price % 5000 == 0, "Price must be a multiple of 5000");
         uint256 tokenAmount = _price / 5000;
         propertyCount++;
