@@ -35,6 +35,7 @@ export declare namespace Property {
     description: string;
     isActive: boolean;
     tokenAddress: string;
+    vaultAddress: string;
   };
 
   export type PropertyDetailsStructOutput = [
@@ -44,6 +45,7 @@ export declare namespace Property {
     BigNumber,
     string,
     boolean,
+    string,
     string
   ] & {
     id: BigNumber;
@@ -53,6 +55,7 @@ export declare namespace Property {
     description: string;
     isActive: boolean;
     tokenAddress: string;
+    vaultAddress: string;
   };
 }
 
@@ -189,7 +192,7 @@ export interface PropertyInterface extends utils.Interface {
 
   events: {
     "OwnershipTransferred(address,address)": EventFragment;
-    "PropertyAdded(uint256,address,string,uint256,address)": EventFragment;
+    "PropertyAdded(uint256,address,string,uint256,address,address)": EventFragment;
     "WhitelistRequested(address)": EventFragment;
     "Whitelisted(address)": EventFragment;
   };
@@ -218,9 +221,10 @@ export interface PropertyAddedEventObject {
   location: string;
   price: BigNumber;
   tokenAddress: string;
+  vaultAddress: string;
 }
 export type PropertyAddedEvent = TypedEvent<
-  [BigNumber, string, string, BigNumber, string],
+  [BigNumber, string, string, BigNumber, string, string],
   PropertyAddedEventObject
 >;
 
@@ -300,7 +304,16 @@ export interface Property extends BaseContract {
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, string, string, BigNumber, string, boolean, string] & {
+      [
+        BigNumber,
+        string,
+        string,
+        BigNumber,
+        string,
+        boolean,
+        string,
+        string
+      ] & {
         id: BigNumber;
         owner: string;
         location: string;
@@ -308,6 +321,7 @@ export interface Property extends BaseContract {
         description: string;
         isActive: boolean;
         tokenAddress: string;
+        vaultAddress: string;
       }
     >;
 
@@ -361,7 +375,7 @@ export interface Property extends BaseContract {
     arg0: BigNumberish,
     overrides?: CallOverrides
   ): Promise<
-    [BigNumber, string, string, BigNumber, string, boolean, string] & {
+    [BigNumber, string, string, BigNumber, string, boolean, string, string] & {
       id: BigNumber;
       owner: string;
       location: string;
@@ -369,6 +383,7 @@ export interface Property extends BaseContract {
       description: string;
       isActive: boolean;
       tokenAddress: string;
+      vaultAddress: string;
     }
   >;
 
@@ -422,7 +437,16 @@ export interface Property extends BaseContract {
       arg0: BigNumberish,
       overrides?: CallOverrides
     ): Promise<
-      [BigNumber, string, string, BigNumber, string, boolean, string] & {
+      [
+        BigNumber,
+        string,
+        string,
+        BigNumber,
+        string,
+        boolean,
+        string,
+        string
+      ] & {
         id: BigNumber;
         owner: string;
         location: string;
@@ -430,6 +454,7 @@ export interface Property extends BaseContract {
         description: string;
         isActive: boolean;
         tokenAddress: string;
+        vaultAddress: string;
       }
     >;
 
@@ -460,19 +485,21 @@ export interface Property extends BaseContract {
       newOwner?: string | null
     ): OwnershipTransferredEventFilter;
 
-    "PropertyAdded(uint256,address,string,uint256,address)"(
+    "PropertyAdded(uint256,address,string,uint256,address,address)"(
       id?: BigNumberish | null,
       owner?: string | null,
       location?: null,
       price?: null,
-      tokenAddress?: null
+      tokenAddress?: null,
+      vaultAddress?: null
     ): PropertyAddedEventFilter;
     PropertyAdded(
       id?: BigNumberish | null,
       owner?: string | null,
       location?: null,
       price?: null,
-      tokenAddress?: null
+      tokenAddress?: null,
+      vaultAddress?: null
     ): PropertyAddedEventFilter;
 
     "WhitelistRequested(address)"(

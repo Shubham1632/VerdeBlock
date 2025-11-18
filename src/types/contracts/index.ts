@@ -4,3 +4,4 @@
 import type * as propertyTokenSol from "./PropertyToken.sol";
 export type { propertyTokenSol };
 export type { Property } from "./Property";
+export type { PropertyVault } from "./PropertyVault";

@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "./PropertyToken.sol";
+import "./PropertyVault.sol";
 
 contract Property is Ownable {
     struct PropertyDetails {
@@ -14,6 +15,7 @@ contract Property is Ownable {
         string description;
         bool isActive;
         address tokenAddress;
+        address vaultAddress;
     }
 
     mapping(uint256 => PropertyDetails) public properties;
@@ -23,7 +25,7 @@ contract Property is Ownable {
     mapping(address => bool) public hasRequested;
     mapping(address => bool) public isWhitelisted;
 
-    event PropertyAdded(uint256 indexed id, address indexed owner, string location, uint256 price, address tokenAddress);
+    event PropertyAdded(uint256 indexed id, address indexed owner, string location, uint256 price, address tokenAddress, address vaultAddress);
     event WhitelistRequested(address indexed investor);
     event Whitelisted(address indexed investor);
 
@@ -36,6 +38,9 @@ contract Property is Ownable {
         string memory name = string(abi.encodePacked("Property ", Strings.toString(propertyCount)));
         string memory symbol = string(abi.encodePacked("PROP", Strings.toString(propertyCount)));
         PropertyToken token = new PropertyToken(msg.sender, tokenAmount, name, symbol, address(this));
+        string memory vaultName = string(abi.encodePacked("Property Vault ", Strings.toString(propertyCount)));
+        string memory vaultSymbol = string(abi.encodePacked("vPROP", Strings.toString(propertyCount)));
+        PropertyVault vault = new PropertyVault(token, vaultName, vaultSymbol, address(this), propertyCount);
         properties[propertyCount] = PropertyDetails({
             id: propertyCount,
             owner: msg.sender,
@@ -43,9 +48,10 @@ contract Property is Ownable {
             price: _price,
             description: _description,
             isActive: true,
-            tokenAddress: address(token)
+            tokenAddress: address(token),
+            vaultAddress: address(vault)
         });
-        emit PropertyAdded(propertyCount, msg.sender, _location, _price, address(token));
+        emit PropertyAdded(propertyCount, msg.sender, _location, _price, address(token), address(vault));
     }
 
     function getProperty(uint256 _id) public view returns (PropertyDetails memory) {
