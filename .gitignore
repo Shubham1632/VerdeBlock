@@ -16,3 +16,5 @@ coverage
 .openzeppelin/*.json
 
 .next
+
+material
